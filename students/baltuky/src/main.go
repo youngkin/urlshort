@@ -1,11 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"urlshort"
-	"log"
-	"flag"
 )
 
 func main() {

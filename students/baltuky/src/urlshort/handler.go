@@ -1,10 +1,9 @@
 package urlshort
 
 import (
-	"net/http"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"net/http"
 )
 
 func NewBaseUrlMapper(urls map[string]string) func(string) (string, bool) {

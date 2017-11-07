@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 
 	"github.com/boltdb/bolt"
-	"gopkg.in/yaml.v2"
 )
 
 // MapHandler will return an http.HandlerFunc (which also
