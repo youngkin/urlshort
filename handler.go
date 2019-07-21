@@ -29,8 +29,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 }
 
 func handleMap(w http.ResponseWriter, r *http.Request) {
-	url := r.URL
-	path, ok := mh.paths[url.RequestURI()]
+	path, ok := mh.paths[r.URL.RequestURI()]
 	if ok {
 		http.Redirect(w, r, path, http.StatusFound)
 		return
@@ -38,16 +37,12 @@ func handleMap(w http.ResponseWriter, r *http.Request) {
 	mh.fallback.ServeHTTP(w, r)
 }
 
-/*
-yaml := `
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
-*/
+type yamlHandler struct {
+	pathMaps []map[string]string
+	fallback http.Handler
+}
 
-type paths []map[string]string
+var yh yamlHandler
 
 // YAMLHandler will parse the provided YAML and then return
 // an http.HandlerFunc (which also implements http.Handler)
@@ -66,11 +61,22 @@ type paths []map[string]string
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	var urlPaths paths
-	if err := yaml.Unmarshal(yml, &urlPaths); err != nil {
+	yh = yamlHandler{}
+	if err := yaml.Unmarshal(yml, &yh.pathMaps); err != nil {
 		return nil, err
 	}
+	yh.fallback = fallback
 
-	fmt.Printf("--- urlPaths:\n\t%v\n\n", urlPaths)
-	return fallback.ServeHTTP, nil
+	fmt.Printf("--- urlPaths:\n\t%v\n\n", yh.pathMaps)
+	return handleYaml, nil
+}
+
+func handleYaml(w http.ResponseWriter, r *http.Request) {
+	for _, pathMap := range yh.pathMaps {
+		if pathMap["path"] == r.URL.RequestURI() {
+			http.Redirect(w, r, pathMap["url"], http.StatusFound)
+			return
+		}
+	}
+	yh.fallback.ServeHTTP(w, r)
 }

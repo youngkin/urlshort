@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # the result of 'include "urlshort.fullname"' is to simply insert the full name of the urlshort chart at this location.
+  # The 'fullname' includes the 'NAME' of the helm installation (.Release.Name?), e.g., 'edgy-pig'
+  name: {{ include "urlshort.fullname" . }}
+  labels:
+{{ include "urlshort.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "urlshort.name" . }}
+      # '.Release.Name' is a helm created name for the release. There are other helm created names (e.g., .Values)
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "urlshort.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+    # '.Values' indicates the substitution comes from the 'values.yaml' file. The following text is a path within that
+    # file that the value can be found (e.g., 'imagePullSecrets' or 'image.tag'). Path elements are separated by '.'
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "ryoungkin/urlshortener:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 9090
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

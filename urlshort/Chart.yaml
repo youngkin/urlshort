@@ -1,0 +1,10 @@
+# Metadata for the urlshort chart
+apiVersion: v1
+# I made this the same as the docker image version
+appVersion: "0.6.0"
+name: urlshort
+description: "url-shortener is a tutorial application from Gophercises, https://gophercises.com"
+# I made this the same as the docker image version. This must be a SemVer. It is actually the version of
+# the chart, not the application. Charts may be versioned separately from the app, e.g., different versions
+# may have different values in values.yaml or other differences that are independent of the app version.
+version: 0.6.1
